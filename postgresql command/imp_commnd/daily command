@@ -1,1 +1,44 @@
+1. To grant permission all schema:- 
 
+DO $$
+DECLARE
+    s RECORD;
+BEGIN
+    FOR s IN
+        SELECT schema_name
+        FROM information_schema.schemata
+        WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
+          AND schema_name NOT LIKE 'pg_temp%'
+          AND schema_name NOT LIKE 'pg_toast_temp%'
+    LOOP
+        EXECUTE format('GRANT USAGE ON SCHEMA %I TO ibeatsreaduser', s.schema_name);
+        EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO ibeatsreaduser', s.schema_name);
+        EXECUTE format('GRANT SELECT ON ALL SEQUENCES IN SCHEMA %I TO ibeatsreaduser', s.schema_name);
+    END LOOP;
+END $$;
+
+
+2. Multiple user:- 
+
+GRANT CONNECT ON DATABASE aop TO "Arunchaube", "Vikaspal", "DeepaliChaudhari";
+
+DO $$
+DECLARE
+    s RECORD;
+    u TEXT;
+BEGIN
+    FOREACH u IN ARRAY ARRAY['Arunchaube', 'Vikaspal', 'DeepaliChaudhari']
+    LOOP
+        FOR s IN
+            SELECT schema_name
+            FROM information_schema.schemata
+            WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
+              AND schema_name NOT LIKE 'pg_temp%'
+              AND schema_name NOT LIKE 'pg_toast_temp%'
+        LOOP
+            EXECUTE format('GRANT USAGE ON SCHEMA %I TO %I', s.schema_name, u);
+            EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO %I', s.schema_name, u);
+            EXECUTE format('GRANT SELECT ON ALL SEQUENCES IN SCHEMA %I TO %I', s.schema_name, u);
+        END LOOP;
+    END LOOP;
+END $$;
