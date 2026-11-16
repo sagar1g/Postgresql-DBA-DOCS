@@ -1,0 +1,37 @@
+1. Execute this query on the primary server
+This query checks the WAL replication lag for both standby servers.
+SELECT
+    client_addr,
+    state,
+    sync_state,
+
+    ROUND(pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn) / 1024 / 1024, 2)
+        AS unsent_mb,
+
+    ROUND(pg_wal_lsn_diff(sent_lsn, write_lsn) / 1024 / 1024, 2)
+        AS sent_not_written_mb,
+
+    ROUND(pg_wal_lsn_diff(write_lsn, flush_lsn) / 1024 / 1024, 2)
+        AS written_not_flushed_mb,
+
+    ROUND(pg_wal_lsn_diff(flush_lsn, replay_lsn) / 1024 / 1024, 2)
+        AS flushed_not_replayed_mb,
+
+    ROUND(pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn) / 1024 / 1024, 2)
+        AS total_replication_lag_mb
+
+FROM pg_stat_replication
+ORDER BY client_addr;
+
+
+2. Check whether WAL replay is progressing:- 
+
+SELECT
+    pg_is_in_recovery() AS is_standby,
+    pg_last_wal_receive_lsn() AS received_lsn,
+    pg_last_wal_replay_lsn() AS replayed_lsn,
+    pg_last_xact_replay_timestamp() AS last_replay_time;
+
+================================================================================================================================================================
+
+
