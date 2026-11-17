@@ -241,6 +241,18 @@ https://www.pythian.com/blog/technical-track/12-essential-steps-for-a-comprehens
 7.MISC_SET: Miscellaneous SET commands, e.g., SET ROLE.
 8.ALL: Include all of the above.
 
+============================================================================================================================
+
+pg_vector:- 
+
+cd /tmp
+git clone --branch v0.8.1 https://github.com/pgvector/pgvector.git
+cd pgvector
+
+export PG_CONFIG=/usr/local/pgsql/bin/pg_config
+make
+sudo make install PG_CONFIG=$PG_CONFIG
+
 
 
 
